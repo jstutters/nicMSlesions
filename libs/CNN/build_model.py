@@ -137,8 +137,8 @@ def cascade_model(options):
     if options['full_train'] is False:
 
         # load default weights
-        print "> CNN: Loading pretrained weights from the", \
-        options['pretrained_model'], "configuration"
+        print("> CNN: Loading pretrained weights from the", \
+        options['pretrained_model'], "configuration")
         pretrained_model = os.path.join(options['weight_paths'], \
                                         options['pretrained_model'],'nets')
         model = os.path.join(options['weight_paths'],
@@ -159,17 +159,17 @@ def cascade_model(options):
             net1['net'].load_weights(net1_w_def, by_name=True)
             net2['net'].load_weights(net2_w_def, by_name=True)
         except:
-            print "> ERROR: The model", \
+            print("> ERROR: The model", \
                 options['experiment'],  \
-                'selected does not contain a valid network model'
+                'selected does not contain a valid network model')
             time.sleep(1)
             os.kill(os.getpid(), signal.SIGTERM)
 
     if options['load_weights'] is True:
-        print "> CNN: loading weights from", \
-            options['experiment'], 'configuration'
-        print net_weights_1
-        print net_weights_2
+        print("> CNN: loading weights from", \
+            options['experiment'], 'configuration')
+        print(net_weights_1)
+        print(net_weights_2)
 
         net1['net'].load_weights(net_weights_1, by_name=True)
         net2['net'].load_weights(net_weights_2, by_name=True)
@@ -201,7 +201,7 @@ def define_training_layers(model, num_layers=1, number_of_samples=None):
     for l in net.layers:
          l.trainable = False
 
-    print "> CNN: re-training the last", num_layers, "layers"
+    print("> CNN: re-training the last", num_layers, "layers")
 
     # re-train the FC layers based on the number of retrained
     # layers
@@ -281,7 +281,7 @@ def fit_model(model, x_train, y_train, options, initial_epoch=0):
     model['history'] = h
 
     if options['debug']:
-        print "> DEBUG: loading best weights after training"
+        print("> DEBUG: loading best weights after training")
 
     model['net'].load_weights(model['weights'])
 

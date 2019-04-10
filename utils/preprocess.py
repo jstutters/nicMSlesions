@@ -41,10 +41,10 @@ def parse_input_masks(current_folder, options):
     image_tags = options['image_tags'][:]
 
     if options['debug']:
-        print "> DEBUG:", "number of input sequences to find:", len(modalities)
+        print("> DEBUG:", "number of input sequences to find:", len(modalities))
 
     scan = options['tmp_scan']
-    print "> PRE:", scan, "identifying input modalities"
+    print("> PRE:", scan, "identifying input modalities")
 
     found_modalities = 0
 
@@ -72,13 +72,13 @@ def parse_input_masks(current_folder, options):
                 os.path.join(options['tmp_folder'], m + '.nii.gz'))
 
             if options['debug']:
-                print "    --> ", masks[index], "as", m, "image"
+                print("    --> ", masks[index], "as", m, "image")
             masks.remove(masks[index])
 
     # check that the minimum number of modalities are used
     if found_modalities < len(modalities):
-        print "> ERROR:", scan, \
-            "does not contain all valid input modalities"
+        print("> ERROR:", scan, \
+            "does not contain all valid input modalities")
         sys.stdout.flush()
         time.sleep(1)
         os.kill(os.getpid(), signal.SIGTERM)
@@ -106,7 +106,7 @@ def parse_input_masks(current_folder, options):
             os.path.join(options['tmp_folder'], m + '.nii.gz'))
 
         if options['debug']:
-            print "    --> ", masks[index], "as", m, "image"
+            print("    --> ", masks[index], "as", m, "image")
             masks.remove(masks[index])
     else:
         ref_scan = nib.load(os.path.join(current_folder, 'tmp', 'T1.nii.gz'))
@@ -116,7 +116,7 @@ def parse_input_masks(current_folder, options):
         output_sequence.to_filename(
             os.path.join(options['tmp_folder'], m + '.nii.gz'))
         if options['debug']:
-            print "    -->  Empty mask as", m, "image"
+            print("    -->  Empty mask as", m, "image")
             masks.remove(masks[index])
 
 def register_masks(options):
@@ -134,7 +134,7 @@ def register_masks(options):
     elif os_host == 'Linux':
         reg_exe = 'reg_aladin'
     else:
-        print "> ERROR: The OS system", os_host, "is not currently supported."
+        print("> ERROR: The OS system", os_host, "is not currently supported.")
 
     reg_aladin_path = os.path.join(options['niftyreg_path'], reg_exe)
 
@@ -143,14 +143,14 @@ def register_masks(options):
             continue
 
         try:
-            print "> PRE:", scan, "registering",  mod, " --> T1 space"
+            print("> PRE:", scan, "registering",  mod, " --> T1 space")
             subprocess.check_output([reg_aladin_path, '-ref',
                                      os.path.join(options['tmp_folder'], 'T1.nii.gz'),
                                      '-flo', os.path.join(options['tmp_folder'], mod + '.nii.gz'),
                                      '-aff', os.path.join(options['tmp_folder'], mod + '_transf.txt'),
                                      '-res', os.path.join(options['tmp_folder'], 'r' + mod + '.nii.gz')])
         except:
-            print "> ERROR:", scan, "registering masks on  ", mod, "quiting program."
+            print("> ERROR:", scan, "registering masks on  ", mod, "quiting program.")
             time.sleep(1)
             os.kill(os.getpid(), signal.SIGTERM)
 
@@ -164,12 +164,12 @@ def register_masks(options):
         elif os_host == 'Linux':
             reg_exe = 'reg_resample'
         else:
-            print "> ERROR: The OS system", os_host, "is not currently supported."
+            print("> ERROR: The OS system", os_host, "is not currently supported.")
 
         reg_resample_path = os.path.join(options['niftyreg_path'], reg_exe)
 
         try:
-            print "> PRE:", scan, "resampling the lesion mask --> T1 space"
+            print("> PRE:", scan, "resampling the lesion mask --> T1 space")
             subprocess.check_output([reg_resample_path, '-ref',
                                      os.path.join(options['tmp_folder'], 'T1.nii.gz'),
                                      '-flo', os.path.join(options['tmp_folder'], 'lesion'),
@@ -177,7 +177,7 @@ def register_masks(options):
                                      '-res', os.path.join(options['tmp_folder'], 'lesion.nii.gz'),
                                      '-inter', '0'])
         except:
-            print "> ERROR:", scan, "registering masks on  ", mod, "quiting program."
+            print("> ERROR:", scan, "registering masks on  ", mod, "quiting program.")
             time.sleep(1)
             os.kill(os.getpid(), signal.SIGTERM)
 
@@ -203,7 +203,7 @@ def denoise_masks(options):
         tmp_scan.to_filename(os.path.join(options['tmp_folder'],
                                           'd' + current_image))
         if options['debug']:
-            print "> DEBUG: Denoising ", current_image
+            print("> DEBUG: Denoising ", current_image)
 
 
 def skull_strip(options):
@@ -221,12 +221,12 @@ def skull_strip(options):
     t1_st_im = os.path.join(options['tmp_folder'], 'T1_brain.nii.gz')
 
     try:
-        print "> PRE:", scan, "skull_stripping the T1 modality"
+        print("> PRE:", scan, "skull_stripping the T1 modality")
         subprocess.check_output([options['robex_path'],
                                  t1_im,
                                  t1_st_im])
     except:
-        print "> ERROR:", scan, "registering masks, quiting program."
+        print("> ERROR:", scan, "registering masks, quiting program.")
         time.sleep(1)
         os.kill(os.getpid(), signal.SIGTERM)
 
@@ -239,7 +239,7 @@ def skull_strip(options):
         # apply the same mask to the rest of modalities to reduce
         # computational time
 
-        print '> PRE: ', scan, 'Applying skull mask to ', mod, 'image'
+        print('> PRE: ', scan, 'Applying skull mask to ', mod, 'image')
         current_mask = os.path.join(options['tmp_folder'],
                                     'dr' + mod + '.nii.gz')
         current_st_mask = os.path.join(options['tmp_folder'],
@@ -268,7 +268,7 @@ def preprocess_scan(current_folder, options):
         os.mkdir(options['tmp_folder'])
     except:
         if os.path.exists(options['tmp_folder']) is False:
-            print "> ERROR:",  scan, "I can not create tmp folder for", current_folder, "Quiting program."
+            print("> ERROR:",  scan, "I can not create tmp folder for", current_folder, "Quiting program.")
 
         else:
             pass
@@ -278,7 +278,7 @@ def preprocess_scan(current_folder, options):
     # --------------------------------------------------
     id_time = time.time()
     parse_input_masks(current_folder, options)
-    print "> INFO:", scan, "elapsed time: ", round(time.time() - id_time), "sec"
+    print("> INFO:", scan, "elapsed time: ", round(time.time() - id_time), "sec")
 
     # --------------------------------------------------
     # register modalities
@@ -286,7 +286,7 @@ def preprocess_scan(current_folder, options):
     if options['register_modalities'] is True:
         reg_time = time.time()
         register_masks(options)
-        print "> INFO:", scan, "elapsed time: ", round(time.time() - reg_time), "sec"
+        print("> INFO:", scan, "elapsed time: ", round(time.time() - reg_time), "sec")
     else:
         try:
             for mod in options['modalities']:
@@ -298,7 +298,7 @@ def preprocess_scan(current_folder, options):
                              os.path.join(options['tmp_folder'],
                                          out_scan))
         except:
-            print "> ERROR: registration ", scan, "I can not rename input modalities as tmp files. Quiting program."
+            print("> ERROR: registration ", scan, "I can not rename input modalities as tmp files. Quiting program.")
 
             time.sleep(1)
             os.kill(os.getpid(), signal.SIGTERM)
@@ -309,7 +309,7 @@ def preprocess_scan(current_folder, options):
     if options['denoise'] is True:
         denoise_time = time.time()
         denoise_masks(options)
-        print "> INFO: denoising", scan, "elapsed time: ", round(time.time() - denoise_time), "sec"
+        print("> INFO: denoising", scan, "elapsed time: ", round(time.time() - denoise_time), "sec")
     else:
         try:
             for mod in options['modalities']:
@@ -319,7 +319,7 @@ def preprocess_scan(current_folder, options):
                             os.path.join(options['tmp_folder'],
                                          'd' + input_scan))
         except:
-            print "> ERROR denoising:", scan, "I can not rename input modalities as tmp files. Quiting program."
+            print("> ERROR denoising:", scan, "I can not rename input modalities as tmp files. Quiting program.")
             time.sleep(1)
             os.kill(os.getpid(), signal.SIGTERM)
 
@@ -330,7 +330,7 @@ def preprocess_scan(current_folder, options):
     if options['skull_stripping'] is True:
         sk_time = time.time()
         skull_strip(options)
-        print "> INFO:", scan, "elapsed time: ", round(time.time() - sk_time), "sec"
+        print("> INFO:", scan, "elapsed time: ", round(time.time() - sk_time), "sec")
     else:
         try:
             for mod in options['modalities']:
@@ -340,9 +340,9 @@ def preprocess_scan(current_folder, options):
                             os.path.join(options['tmp_folder'],
                                          mod + '_brain.nii.gz'))
         except:
-            print "> ERROR: Skull-stripping", scan, "I can not rename input modalities as tmp files. Quiting program."
+            print("> ERROR: Skull-stripping", scan, "I can not rename input modalities as tmp files. Quiting program.")
             time.sleep(1)
             os.kill(os.getpid(), signal.SIGTERM)
 
     if options['skull_stripping'] is True and options['register_modalities'] is True:
-        print "> INFO:", scan, "total preprocessing time: ", round(time.time() - preprocess_time)
+        print("> INFO:", scan, "total preprocessing time: ", round(time.time() - preprocess_time))

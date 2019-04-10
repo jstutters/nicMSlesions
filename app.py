@@ -10,20 +10,20 @@
 #
 # --------------------------------------------------
 
-import ConfigParser
+import configparser
 import argparse
 import platform
 import subprocess
 import os
 import signal
-import Queue
+import queue as Queue
 import threading
 from __init__ import __version__
-from Tkinter import Frame, LabelFrame, Label, END, Tk
-from Tkinter import Entry, Button, Checkbutton, OptionMenu, Toplevel
-from Tkinter import BooleanVar, StringVar, IntVar, DoubleVar
-from tkFileDialog import askdirectory
-from ttk import Notebook
+from tkinter import Frame, LabelFrame, Label, END, Tk
+from tkinter import Entry, Button, Checkbutton, OptionMenu, Toplevel
+from tkinter import BooleanVar, StringVar, IntVar, DoubleVar
+from tkinter.filedialog import askdirectory
+from tkinter.ttk import Notebook
 from PIL import Image, ImageTk
 import webbrowser
 from cnn_scripts import train_network, infer_segmentation, get_config
@@ -122,18 +122,18 @@ class wm_seg:
         self.note.pack()
 
         os.system('cls' if platform.system() == 'Windows' else 'clear')
-        print "##################################################"
-        print "# ------------                                   #"
-        print "# nicMSlesions                                   #"
-        print "# ------------                                   #"
-        print "# MS WM lesion segmentation                      #"
-        print "#                                                #"
-        print "# -------------------------------                #"
-        print "# (c) Sergi Valverde 2019                        #"
-        print "# Neuroimage Computing Group                     #"
-        print "# -------------------------------                #"
-        print "##################################################\n"
-        print "Please select options for training or inference in the menu..."
+        print("##################################################")
+        print("# ------------                                   #")
+        print("# nicMSlesions                                   #")
+        print("# ------------                                   #")
+        print("# MS WM lesion segmentation                      #")
+        print("#                                                #")
+        print("# -------------------------------                #")
+        print("# (c) Sergi Valverde 2019                        #")
+        print("# Neuroimage Computing Group                     #")
+        print("# -------------------------------                #")
+        print("##################################################\n")
+        print("Please select options for training or inference in the menu...")
 
         # --------------------------------------------------
         # training tab
@@ -472,7 +472,7 @@ class wm_seg:
         class attributes
         """
 
-        default_config = ConfigParser.SafeConfigParser()
+        default_config = configparser.ConfigParser()
         default_config.read(os.path.join(self.path, 'config', 'default.cfg'))
 
         # dastaset parameters
@@ -522,7 +522,7 @@ class wm_seg:
         """
         write the configuration into config/configuration.cfg
         """
-        user_config = ConfigParser.RawConfigParser()
+        user_config = configparser.RawConfigParser()
 
         # dataset parameters
         user_config.add_section('database')
@@ -577,7 +577,7 @@ class wm_seg:
         # Writing our configuration file to 'example.cfg'
         with open(os.path.join(self.path,
                                'config',
-                               'configuration.cfg'), 'wb') as configfile:
+                               'configuration.cfg'), 'w') as configfile:
             user_config.write(configfile)
 
     def load_training_path(self):
@@ -649,21 +649,21 @@ class wm_seg:
         """
 
         if self.param_inference_model.get() == 'None':
-            print "ERROR: Please, select a network model before starting...\n"
+            print("ERROR: Please, select a network model before starting...\n")
             return
         if self.test_task is None:
             self.inferenceBtn.config(state='disabled')
             self.param_net_name.set(self.param_inference_model.get())
             self.param_use_pretrained_model.set(False)
             self.write_user_configuration()
-            print "\n-----------------------"
-            print "Running configuration:"
-            print "-----------------------"
-            print "Inference model:", self.param_model_tag.get()
-            print "Inference folder:", self.param_test_folder.get(), "\n"
+            print("\n-----------------------")
+            print("Running configuration:")
+            print("-----------------------")
+            print("Inference model:", self.param_model_tag.get())
+            print("Inference folder:", self.param_test_folder.get(), "\n")
 
-            print "Method info:"
-            print "------------"
+            print("Method info:")
+            print("------------")
             self.test_task = ThreadedTask(self.write_to_test_console,
                                           self.test_queue, mode='testing')
             self.test_task.start()
@@ -677,7 +677,7 @@ class wm_seg:
         """
 
         if self.param_net_name.get() == 'None':
-            print "ERROR: Please, define network name before starting...\n"
+            print("ERROR: Please, define network name before starting...\n")
             return
 
         self.trainingBtn['state'] = 'disable'
@@ -685,14 +685,14 @@ class wm_seg:
         if self.train_task is None:
             self.trainingBtn.update()
             self.write_user_configuration()
-            print "\n-----------------------"
-            print "Running configuration:"
-            print "-----------------------"
-            print "Train model:", self.param_net_name.get()
-            print "Training folder:", self.param_training_folder.get(), "\n"
+            print("\n-----------------------")
+            print("Running configuration:")
+            print("-----------------------")
+            print("Train model:", self.param_net_name.get())
+            print("Training folder:", self.param_training_folder.get(), "\n")
 
-            print "Method info:"
-            print "------------"
+            print("Method info:")
+            print("------------")
 
             self.train_task = ThreadedTask(self.write_to_console,
                                            self.test_queue,
@@ -707,9 +707,9 @@ class wm_seg:
             """
 
             # I have to discard possible local changes :(
-            print "---------------------------------------"
-            print "Updating software"
-            print "current version:", self.commit_version
+            print("---------------------------------------")
+            print("Updating software")
+            print("current version:", self.commit_version)
 
             remote_commit = subprocess.check_output(['git', 'stash'])
             remote_commit = subprocess.check_output(['git', 'fetch'])
@@ -722,10 +722,10 @@ class wm_seg:
                                                 'origin', 'master'])
                 self.check_link.config(text="Updated")
                 self.commit_version = remote_commit
-                print "updated version:", self.commit_version
+                print("updated version:", self.commit_version)
             else:
-                print "This software is already in the latest version"
-            print "---------------------------------------"
+                print("This software is already in the latest version")
+            print("---------------------------------------")
 
     def about_window(self):
         """
@@ -754,7 +754,7 @@ class wm_seg:
         imglabel.image = img
         imglabel.grid(row=1, column=1, padx=10, pady=10)
         group_name = Label(t,
-                           text="Copyright Sergi Valverde (2019-) \n " +
+                           text="Copyright Sergi Valverde (2019-) \n " + \
                            "NeuroImage Computing Group")
         group_name.grid(row=3, column=1)
         group_link = Label(t, text=r"http://atc.udg.edu/nic",

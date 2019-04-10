@@ -16,21 +16,21 @@ import argparse
 import sys
 import platform
 import time
-import ConfigParser
+import configparser
 from utils.load_options import load_options, print_options
 from utils.preprocess import preprocess_scan
 from utils.postprocess import invert_registration
 from shutil import copyfile
 
 os.system('cls' if platform.system() == 'Windows' else 'clear')
-print "##################################################"
-print "# MS WM lesion segmentation                      #"
-print "#                                                #"
-print "# -------------------------------                #"
-print "# (c) Sergi Valverde 2019                        #"
-print "# Neuroimage Computing Group                     #"
-print "# -------------------------------                #"
-print "##################################################\n"
+print("##################################################")
+print("# MS WM lesion segmentation                      #")
+print("#                                                #")
+print("# -------------------------------                #")
+print("# (c) Sergi Valverde 2019                        #")
+print("# Neuroimage Computing Group                     #")
+print("# -------------------------------                #")
+print("##################################################\n")
 
 # link related libraries
 CURRENT_PATH = os.path.split(os.path.realpath(__file__))[0]
@@ -49,9 +49,9 @@ container = args.docker
 # load default options and update them with user information
 # from utils.load_options import *
 # --------------------------------------------------
-default_config = ConfigParser.SafeConfigParser()
+default_config = configparser.ConfigParser()
 default_config.read(os.path.join(CURRENT_PATH, 'config', 'default.cfg'))
-user_config = ConfigParser.RawConfigParser()
+user_config = configparser.RawConfigParser()
 user_config.read(os.path.join(CURRENT_PATH, 'config', 'configuration.cfg'))
 
 # read user's configuration file
@@ -62,7 +62,7 @@ if options['debug']:
 
 # tensorflow backend
 device = str(options['gpu_number'])
-print "DEBUG: ", device
+print("DEBUG: ", device)
 os.environ['KERAS_BACKEND'] = 'tensorflow'
 os.environ["CUDA_VISIBLE_DEVICES"] = device
 
@@ -148,17 +148,17 @@ for scan in scan_list:
 
     out_seg = test_cascaded_model(model, test_x_data, options)
 
-    print "> INFO:", scan, "CNN Segmentation time: ",\
-        round(time.time() - seg_time), "sec"
+    print("> INFO:", scan, "CNN Segmentation time: ",\
+        round(time.time() - seg_time), "sec")
 
     # If input images have been registered before segmentation -> T1w space,
     # then resample the segmentation  back to the original space
     if options['register_modalities']:
-        print "> INFO:", scan, "Inverting lesion segmentation masks"
+        print("> INFO:", scan, "Inverting lesion segmentation masks")
         invert_registration(current_folder, options)
 
-    print "> INFO:", scan, "total pipeline time: ",\
-        round(time.time() - total_time), "sec"
+    print("> INFO:", scan, "total pipeline time: ",\
+        round(time.time() - total_time), "sec")
 
     # remove tmps if not set
     if options['save_tmp'] is False:
@@ -177,4 +177,4 @@ for scan in scan_list:
         except:
             pass
 
-print "> INFO: All processes have been finished. Have a good day!"
+print("> INFO: All processes have been finished. Have a good day!")

@@ -17,7 +17,7 @@ import os
 import sys
 import platform
 import time
-import ConfigParser
+import configparser
 from utils.preprocess import preprocess_scan
 from utils.load_options import load_options, print_options
 CURRENT_PATH = CURRENT_PATH = os.path.split(os.path.realpath(__file__))[0]
@@ -28,9 +28,9 @@ def get_config():
     """
     Get the CNN configuration from file
     """
-    default_config = ConfigParser.SafeConfigParser()
+    default_config = configparser.ConfigParser()
     default_config.read(os.path.join(CURRENT_PATH, 'config', 'default.cfg'))
-    user_config = ConfigParser.RawConfigParser()
+    user_config = configparser.RawConfigParser()
     user_config.read(os.path.join(CURRENT_PATH, 'config', 'configuration.cfg'))
 
     # read user's configuration file
@@ -58,7 +58,7 @@ def get_config():
                          'runROBEX.bat'))
         options['test_slices'] = 256
     else:
-        print "The OS system", host_os, "is not currently supported."
+        print("The OS system", host_os, "is not currently supported.")
         exit()
 
     # print options when debugging
@@ -85,7 +85,7 @@ def define_backend(options):
 
     # forcing tensorflow
     device = str(options['gpu_number'])
-    print "DEBUG: ", device
+    print("DEBUG: ", device)
     os.environ['KERAS_BACKEND'] = 'tensorflow'
     os.environ["CUDA_VISIBLE_DEVICES"] = device
 
@@ -133,7 +133,7 @@ def train_network(options):
     # --------------------------------------------------
 
     seg_time = time.time()
-    print "> CNN: Starting training session"
+    print("> CNN: Starting training session")
     # select training scans
     train_x_data = {f: {m: os.path.join(options['train_folder'], f, 'tmp', n)
                         for m, n in zip(options['modalities'],
@@ -150,7 +150,7 @@ def train_network(options):
 
     # train the model for the current scan
 
-    print "> CNN: training net with %d subjects" % (len(train_x_data.keys()))
+    print("> CNN: training net with %d subjects" % (len(train_x_data.keys())))
 
     # --------------------------------------------------
     # initialize the CNN and train the classifier
@@ -158,9 +158,9 @@ def train_network(options):
     model = cascade_model(options)
     model = train_cascaded_model(model, train_x_data, train_y_data,  options)
 
-    print "> INFO: training time:", round(time.time() - seg_time), "sec"
-    print "> INFO: total pipeline time: ", round(time.time() - total_time), "sec"
-    print "> INFO: All processes have been finished. Have a good day!"
+    print("> INFO: training time:", round(time.time() - seg_time), "sec")
+    print("> INFO: total pipeline time: ", round(time.time() - total_time), "sec")
+    print("> INFO: All processes have been finished. Have a good day!")
 
 
 def infer_segmentation(options):
@@ -227,8 +227,8 @@ def infer_segmentation(options):
                                               options['x_names'])}}
 
         test_cascaded_model(model, test_x_data, options)
-        print "> INFO:", scan, "CNN Segmentation time: ", round(time.time() - seg_time), "sec"
-        print "> INFO:", scan, "total pipeline time: ", round(time.time() - total_time), "sec"
+        print("> INFO:", scan, "CNN Segmentation time: ", round(time.time() - seg_time), "sec")
+        print("> INFO:", scan, "total pipeline time: ", round(time.time() - total_time), "sec")
 
         # remove tmps if not set
         if options['save_tmp'] is False:
@@ -239,4 +239,4 @@ def infer_segmentation(options):
             except:
                 pass
 
-    print "> INFO: All processes have been finished. Have a good day!"
+    print("> INFO: All processes have been finished. Have a good day!")

@@ -21,7 +21,7 @@ def invert_registration(current_folder, options):
         reg_transform = 'reg_transform'
         reg_resample = 'reg_resample'
     else:
-        print "> ERROR: The OS system", os_host, "is not currently supported."
+        print("> ERROR: The OS system", os_host, "is not currently supported.")
 
     reg_transform_path = os.path.join(options['niftyreg_path'], reg_transform)
     reg_resample_path = os.path.join(options['niftyreg_path'], reg_resample)
@@ -34,12 +34,12 @@ def invert_registration(current_folder, options):
                                  os.path.join(options['tmp_folder'],
                                               'inv_FLAIR_transf.txt')])
     except:
-        print "> ERROR: computing the inverse transformation matrix.\
-        Quitting program."
+        print("> ERROR: computing the inverse transformation matrix.\
+        Quitting program.")
         time.sleep(1)
         os.kill(os.getpid(), signal.SIGTERM)
 
-    print "> POST: registering output segmentation masks back to FLAIR"
+    print("> POST: registering output segmentation masks back to FLAIR")
 
     current_experiment = os.path.join(current_folder, options['experiment'])
     list_scans = os.listdir(current_experiment)
@@ -60,6 +60,6 @@ def invert_registration(current_folder, options):
                                                           current_name + '_FLAIR.nii.gz'),
                                      '-inter', '0'])
         except:
-            print "> ERROR: resampling ",  current_name, "Quitting program."
+            print("> ERROR: resampling ",  current_name, "Quitting program.")
             time.sleep(1)
             os.kill(os.getpid(), signal.SIGTERM)

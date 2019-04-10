@@ -132,11 +132,11 @@ def print_options(options):
     """
     print options
     """
-    print "--------------------------------------------------"
-    print " configuration options:"
-    print "--------------------------------------------------"
-    print " "
+    print("--------------------------------------------------")
+    print(" configuration options:")
+    print("--------------------------------------------------")
+    print(" ")
     keys = options.keys()
     for k in keys:
-        print k, ':', options[k]
-    print "--------------------------------------------------"
+        print(k, ':', options[k])
+    print("--------------------------------------------------")

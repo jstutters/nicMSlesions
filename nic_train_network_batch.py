@@ -17,23 +17,23 @@ import sys
 import platform
 import time
 import argparse
-import ConfigParser
+import configparser
 from utils.preprocess import preprocess_scan
 from utils.load_options import load_options, print_options
 
 os.system('cls' if platform.system() == 'Windows' else 'clear')
 
-print "##################################################"
-print "# ------------                                   #"
-print "# nicMSlesions                                   #"
-print "# ------------                                   #"
-print "# MS WM lesion segmentation                      #"
-print "#                                                #"
-print "# -------------------------------                #"
-print "# (c) Sergi Valverde 2019                        #"
-print "# Neuroimage Computing Group                     #"
-print "# -------------------------------                #"
-print "##################################################\n"
+print("##################################################")
+print("# ------------                                   #")
+print("# nicMSlesions                                   #")
+print("# ------------                                   #")
+print("# MS WM lesion segmentation                      #")
+print("#                                                #")
+print("# -------------------------------                #")
+print("# (c) Sergi Valverde 2019                        #")
+print("# Neuroimage Computing Group                     #")
+print("# -------------------------------                #")
+print("##################################################\n")
 
 
 # load options from input
@@ -50,9 +50,9 @@ CURRENT_PATH = CURRENT_PATH = os.path.split(os.path.realpath(__file__))[0]
 sys.path.append(os.path.join(CURRENT_PATH, 'libs'))
 
 # load default options and update them with user information
-default_config = ConfigParser.SafeConfigParser()
+default_config = configparser.ConfigParser()
 default_config.read(os.path.join(CURRENT_PATH, 'config', 'default.cfg'))
-user_config = ConfigParser.RawConfigParser()
+user_config = configparser.RawConfigParser()
 user_config.read(os.path.join(CURRENT_PATH, 'config', 'configuration.cfg'))
 
 # read user's configuration file
@@ -75,7 +75,7 @@ elif host_os == 'Windows':
         os.path.join(CURRENT_PATH, 'libs', 'win', 'ROBEX', 'runROBEX.bat'))
     options['test_slices'] = 256
 else:
-    print "The OS system", host_os, "is not currently supported."
+    print("The OS system", host_os, "is not currently supported.")
     exit()
 
 
@@ -85,7 +85,7 @@ else:
 
 # tensorflow backend
 device = str(options['gpu_number'])
-print "DEBUG: ", device
+print("DEBUG: ", device)
 os.environ['KERAS_BACKEND'] = 'tensorflow'
 os.environ["CUDA_VISIBLE_DEVICES"] = device
 
@@ -129,7 +129,7 @@ for scan in scan_list:
 # --------------------------------------------------
 
 seg_time = time.time()
-print "> CNN: Starting training session"
+print("> CNN: Starting training session")
 # select training scans
 
 train_x_data = {f: {m: os.path.join(options['train_folder'], f, 'tmp', n)
@@ -145,7 +145,7 @@ options['load_weights'] = False
 
 # train the model for the current scan
 
-print "> CNN: training net with %d subjects" % (len(train_x_data.keys()))
+print("> CNN: training net with %d subjects" % (len(train_x_data.keys())))
 
 # --------------------------------------------------
 # initialize the CNN and train the classifier
@@ -153,6 +153,6 @@ print "> CNN: training net with %d subjects" % (len(train_x_data.keys()))
 model = cascade_model(options)
 model = train_cascaded_model(model, train_x_data, train_y_data,  options)
 
-print "> INFO: training time:", round(time.time() - seg_time), "sec"
-print "> INFO: total pipeline time: ", round(time.time() - total_time), "sec"
-print "> INFO: All processes have been finished. Have a good day!"
+print("> INFO: training time:", round(time.time() - seg_time), "sec")
+print("> INFO: total pipeline time: ", round(time.time() - total_time), "sec")
+print("> INFO: All processes have been finished. Have a good day!")

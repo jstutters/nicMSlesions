@@ -31,9 +31,9 @@ def train_cascaded_model(model, train_x_data, train_y_data, options):
     # CNN1
     # ----------
 
-    print "> CNN: loading training data for first model"
+    print("> CNN: loading training data for first model")
     X, Y, sel_voxels = load_training_data(train_x_data, train_y_data, options)
-    print '> CNN: train_x ', X.shape
+    print('> CNN: train_x ', X.shape)
 
     # If a full train is not selected, all CONV layers are freezed and
     # negatives samples are resampled to increase the number of negative
@@ -73,12 +73,12 @@ def train_cascaded_model(model, train_x_data, train_y_data, options):
     # CNN2
     # ----------
 
-    print '> CNN: loading training data for the second model'
+    print('> CNN: loading training data for the second model')
     X, Y, sel_voxels = load_training_data(train_x_data,
                                           train_y_data,
                                           options,
                                           model=model[0])
-    print '> CNN: train_x ', X.shape
+    print('> CNN: train_x ', X.shape)
 
     # define training layers
     if options['full_train'] is False:
@@ -545,7 +545,7 @@ def test_scan(model,
         all_voxels = np.sum(flair_image.get_data() > 0)
 
     if options['debug'] is True:
-            print "> DEBUG ", scans[0], "Voxels to classify:", all_voxels
+            print("> DEBUG ", scans[0], "Voxels to classify:", all_voxels)
 
     # compute lesion segmentation in batches of size options['batch_size']
     batch, centers = load_test_patches(test_x_data,
@@ -553,21 +553,21 @@ def test_scan(model,
                                        options['batch_size'],
                                        candidate_mask)
     if options['debug'] is True:
-        print "> DEBUG: testing current_batch:", batch.shape,
+        print("> DEBUG: testing current_batch:", batch.shape,)
 
     y_pred = model['net'].predict(np.squeeze(batch),
                                   options['batch_size'])
     [x, y, z] = np.stack(centers, axis=1)
     seg_image[x, y, z] = y_pred[:, 1]
     if options['debug'] is True:
-            print "...done!"
+            print("...done!")
 
     # check if the computed volume is lower than the minimum accuracy given
     # by the min_error parameter
     if check_min_error(seg_image, options, flair_image.header.get_zooms()):
         if options['debug']:
-            print "> DEBUG ", scans[0], "lesion volume below ", \
-                options['min_error'], 'ml'
+            print("> DEBUG ", scans[0], "lesion volume below ", \
+                options['min_error'], 'ml')
         seg_image = np.zeros_like(flair_image.get_data().astype('float32'))
 
     if save_nifti:
