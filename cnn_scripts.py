@@ -1,4 +1,3 @@
-
 # ------------------------------------------------------------------------------------------------------------
 #   MS lesion segmentation pipeline
 # ---------------------------------
@@ -20,8 +19,9 @@ import time
 import configparser
 from utils.preprocess import preprocess_scan
 from utils.load_options import load_options, print_options
+
 CURRENT_PATH = CURRENT_PATH = os.path.split(os.path.realpath(__file__))[0]
-sys.path.append(os.path.join(CURRENT_PATH, 'libs'))
+sys.path.append(os.path.join(CURRENT_PATH, "libs"))
 
 
 def get_config():
@@ -29,66 +29,60 @@ def get_config():
     Get the CNN configuration from file
     """
     default_config = configparser.ConfigParser()
-    default_config.read(os.path.join(CURRENT_PATH, 'config', 'default.cfg'))
+    default_config.read(os.path.join(CURRENT_PATH, "config", "default.cfg"))
     user_config = configparser.RawConfigParser()
-    user_config.read(os.path.join(CURRENT_PATH, 'config', 'configuration.cfg'))
+    user_config.read(os.path.join(CURRENT_PATH, "config", "configuration.cfg"))
 
     # read user's configuration file
     options = load_options(default_config, user_config)
-    options['tmp_folder'] = CURRENT_PATH + '/tmp'
+    options["tmp_folder"] = CURRENT_PATH + "/tmp"
 
     # set paths taking into account the host OS
     host_os = platform.system()
-    if host_os == 'Linux':
-        options['niftyreg_path'] = CURRENT_PATH + '/libs/linux/niftyreg'
-        options['robex_path'] = CURRENT_PATH + '/libs/linux/ROBEX/runROBEX.sh'
-        options['test_slices'] = 256
-    elif host_os == 'Windows':
-        options['niftyreg_path'] = os.path.normpath(
-            os.path.join(CURRENT_PATH,
-                         'libs',
-                         'win',
-                         'niftyreg'))
+    if host_os == "Linux":
+        options["niftyreg_path"] = CURRENT_PATH + "/libs/linux/niftyreg"
+        options["robex_path"] = CURRENT_PATH + "/libs/linux/ROBEX/runROBEX.sh"
+        options["test_slices"] = 256
+    elif host_os == "Windows":
+        options["niftyreg_path"] = os.path.normpath(
+            os.path.join(CURRENT_PATH, "libs", "win", "niftyreg")
+        )
 
-        options['robex_path'] = os.path.normpath(
-            os.path.join(CURRENT_PATH,
-                         'libs',
-                         'win',
-                         'ROBEX',
-                         'runROBEX.bat'))
-        options['test_slices'] = 256
+        options["robex_path"] = os.path.normpath(
+            os.path.join(CURRENT_PATH, "libs", "win", "ROBEX", "runROBEX.bat")
+        )
+        options["test_slices"] = 256
     else:
         print("The OS system", host_os, "is not currently supported.")
         exit()
 
     # print options when debugging
-    if options['debug']:
+    if options["debug"]:
         print_options(options)
 
     return options
+
 
 def define_backend(options):
     """
     Define the library backend and write options
     """
     #
-    #    if options['backend'] == 'theano':
-    #        device = 'cuda' + str(options['gpu_number']) if options['gpu_mode'] else 'cpu'
-    #        os.environ['KERAS_BACKEND'] = options['backend']
-    #        os.environ['THEANO_FLAGS'] = 'mode=FAST_RUN,device=' + device + ',floatX=float32,optimizer=fast_compile'
-    #    else:
-    #        device = str(options['gpu_number']) if options['gpu_mode'] is not None else " "
-    #        print "DEBUG: ", device
-    #        os.environ['KERAS_BACKEND'] = 'tensorflow'
-    #        os.environ["CUDA_VISIBLE_DEVICES"] = device
-
+    # if options['backend'] == 'theano':
+    #     device = 'cuda' + str(options['gpu_number']) if options['gpu_mode'] else 'cpu'
+    #     os.environ['KERAS_BACKEND'] = options['backend']
+    #     os.environ['THEANO_FLAGS'] = 'mode=FAST_RUN,device=' + device + ',floatX=float32,optimizer=fast_compile'
+    # else:
+    #     device = str(options['gpu_number']) if options['gpu_mode'] is not None else " "
+    #     print "DEBUG: ", device
+    #     os.environ['KERAS_BACKEND'] = 'tensorflow'
+    #     os.environ["CUDA_VISIBLE_DEVICES"] = device
 
     # forcing tensorflow
-    device = str(options['gpu_number'])
+    device = str(options["gpu_number"])
     print("DEBUG: ", device)
-    os.environ['KERAS_BACKEND'] = 'tensorflow'
+    os.environ["KERAS_BACKEND"] = "tensorflow"
     os.environ["CUDA_VISIBLE_DEVICES"] = device
-
 
 
 def train_network(options):
@@ -106,11 +100,11 @@ def train_network(options):
     # define the training backend
     define_backend(options)
 
-    scan_list = os.listdir(options['train_folder'])
+    scan_list = os.listdir(options["train_folder"])
     scan_list.sort()
 
-    options['task'] = 'training'
-    options['train_folder'] = os.path.normpath(options['train_folder'])
+    options["task"] = "training"
+    options["train_folder"] = os.path.normpath(options["train_folder"])
     for scan in scan_list:
 
         total_time = time.time()
@@ -119,10 +113,9 @@ def train_network(options):
         # move things to a tmp folder before starting
         # --------------------------------------------------
 
-        options['tmp_scan'] = scan
-        current_folder = os.path.join(options['train_folder'], scan)
-        options['tmp_folder'] = os.path.normpath(os.path.join(current_folder,
-                                                              'tmp'))
+        options["tmp_scan"] = scan
+        current_folder = os.path.join(options["train_folder"], scan)
+        options["tmp_folder"] = os.path.normpath(os.path.join(current_folder, "tmp"))
 
         # preprocess scan
         preprocess_scan(current_folder, options)
@@ -135,18 +128,20 @@ def train_network(options):
     seg_time = time.time()
     print("> CNN: Starting training session")
     # select training scans
-    train_x_data = {f: {m: os.path.join(options['train_folder'], f, 'tmp', n)
-                        for m, n in zip(options['modalities'],
-                                        options['x_names'])}
-                    for f in scan_list}
-    train_y_data = {f: os.path.join(options['train_folder'],
-                                    f,
-                                    'tmp',
-                                    'lesion.nii.gz')
-                    for f in scan_list}
+    train_x_data = {
+        f: {
+            m: os.path.join(options["train_folder"], f, "tmp", n)
+            for m, n in zip(options["modalities"], options["x_names"])
+        }
+        for f in scan_list
+    }
+    train_y_data = {
+        f: os.path.join(options["train_folder"], f, "tmp", "lesion.nii.gz")
+        for f in scan_list
+    }
 
-    options['weight_paths'] = os.path.join(CURRENT_PATH, 'nets')
-    options['load_weights'] = False
+    options["weight_paths"] = os.path.join(CURRENT_PATH, "nets")
+    options["load_weights"] = False
 
     # train the model for the current scan
 
@@ -156,7 +151,7 @@ def train_network(options):
     # initialize the CNN and train the classifier
     # --------------------------------------------------
     model = cascade_model(options)
-    model = train_cascaded_model(model, train_x_data, train_y_data,  options)
+    model = train_cascaded_model(model, train_x_data, train_y_data, options)
 
     print("> INFO: training time:", round(time.time() - seg_time), "sec")
     print("> INFO: total pipeline time: ", round(time.time() - total_time), "sec")
@@ -179,10 +174,10 @@ def infer_segmentation(options):
     # take into account if the pretrained models have to be used
     # all images share the same network model
     # --------------------------------------------------
-    options['full_train'] = True
-    options['load_weights'] = True
-    options['weight_paths'] = os.path.join(CURRENT_PATH, 'nets')
-    options['net_verbose'] = 0
+    options["full_train"] = True
+    options["load_weights"] = True
+    options["weight_paths"] = os.path.join(CURRENT_PATH, "nets")
+    options["net_verbose"] = 0
     model = cascade_model(options)
 
     # --------------------------------------------------
@@ -192,21 +187,20 @@ def infer_segmentation(options):
     # - skull-stripping
     # - WM segmentation
     # --------------------------------------------------
-    options['task'] = 'testing'
-    scan_list = os.listdir(options['test_folder'])
+    options["task"] = "testing"
+    scan_list = os.listdir(options["test_folder"])
     scan_list.sort()
 
     for scan in scan_list:
 
         total_time = time.time()
-        options['tmp_scan'] = scan
+        options["tmp_scan"] = scan
         # --------------------------------------------------
         # move things to a tmp folder before starting
         # --------------------------------------------------
 
-        current_folder = os.path.join(options['test_folder'], scan)
-        options['tmp_folder'] = os.path.normpath(
-            os.path.join(current_folder,  'tmp'))
+        current_folder = os.path.join(options["test_folder"], scan)
+        options["tmp_folder"] = os.path.normpath(os.path.join(current_folder, "tmp"))
 
         # --------------------------------------------------
         # preprocess scans
@@ -220,23 +214,37 @@ def infer_segmentation(options):
 
         "> CNN:", scan, "running WM lesion segmentation"
         sys.stdout.flush()
-        options['test_scan'] = scan
+        options["test_scan"] = scan
 
-        test_x_data = {scan: {m: os.path.join(options['tmp_folder'], n)
-                              for m, n in zip(options['modalities'],
-                                              options['x_names'])}}
+        test_x_data = {
+            scan: {
+                m: os.path.join(options["tmp_folder"], n)
+                for m, n in zip(options["modalities"], options["x_names"])
+            }
+        }
 
         test_cascaded_model(model, test_x_data, options)
-        print("> INFO:", scan, "CNN Segmentation time: ", round(time.time() - seg_time), "sec")
-        print("> INFO:", scan, "total pipeline time: ", round(time.time() - total_time), "sec")
+        print(
+            "> INFO:",
+            scan,
+            "CNN Segmentation time: ",
+            round(time.time() - seg_time),
+            "sec",
+        )
+        print(
+            "> INFO:",
+            scan,
+            "total pipeline time: ",
+            round(time.time() - total_time),
+            "sec",
+        )
 
         # remove tmps if not set
-        if options['save_tmp'] is False:
+        if options["save_tmp"] is False:
             try:
-                os.rmdir(options['tmp_folder'])
-                os.rmdir(os.path.join(options['current_folder'],
-                                      options['experiment']))
-            except:
+                os.rmdir(options["tmp_folder"])
+                os.rmdir(os.path.join(options["current_folder"], options["experiment"]))
+            except Exception:
                 pass
 
     print("> INFO: All processes have been finished. Have a good day!")

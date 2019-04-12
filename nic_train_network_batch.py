@@ -20,6 +20,9 @@ import argparse
 import configparser
 from utils.preprocess import preprocess_scan
 from utils.load_options import load_options, print_options
+from CNN.base import train_cascaded_model
+from CNN.build_model import cascade_model
+
 
 os.system('cls' if platform.system() == 'Windows' else 'clear')
 
@@ -89,9 +92,6 @@ print("DEBUG: ", device)
 os.environ['KERAS_BACKEND'] = 'tensorflow'
 os.environ["CUDA_VISIBLE_DEVICES"] = device
 
-from CNN.base import train_cascaded_model
-from CNN.build_model import cascade_model
-
 if container:
     options['train_folder'] = os.path.normpath(
         '/data' + options['train_folder'])
@@ -117,7 +117,7 @@ for scan in scan_list:
     options['tmp_scan'] = scan
     current_folder = os.path.join(options['train_folder'], scan)
     options['tmp_folder'] = os.path.normpath(
-        os.path.join(current_folder,  'tmp'))
+        os.path.join(current_folder, 'tmp'))
 
     # preprocess scan
     preprocess_scan(current_folder, options)
@@ -151,7 +151,7 @@ print("> CNN: training net with %d subjects" % (len(train_x_data.keys())))
 # initialize the CNN and train the classifier
 # --------------------------------------------------
 model = cascade_model(options)
-model = train_cascaded_model(model, train_x_data, train_y_data,  options)
+model = train_cascaded_model(model, train_x_data, train_y_data, options)
 
 print("> INFO: training time:", round(time.time() - seg_time), "sec")
 print("> INFO: total pipeline time: ", round(time.time() - total_time), "sec")

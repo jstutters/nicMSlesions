@@ -21,8 +21,11 @@ import argparse
 import configparser
 from utils.preprocess import preprocess_scan
 from utils.load_options import load_options, print_options
+from CNN.base import train_cascaded_model, test_cascaded_model
+from CNN.build_model import cascade_model
 
-os.system('cls' if platform.system() == 'Windows' else 'clear')
+
+os.system("cls" if platform.system() == "Windows" else "clear")
 
 print("##################################################")
 print("# ------------                                   #")
@@ -39,62 +42,58 @@ print("##################################################\n")
 
 # load options from input
 parser = argparse.ArgumentParser()
-parser.add_argument('--docker',
-                    dest='docker',
-                    action='store_true')
+parser.add_argument("--docker", dest="docker", action="store_true")
 parser.set_defaults(docker=False)
 args = parser.parse_args()
 container = args.docker
 
 # link related libraries
 CURRENT_PATH = os.getcwd()
-sys.path.append(os.path.join(CURRENT_PATH, 'libs'))
+sys.path.append(os.path.join(CURRENT_PATH, "libs"))
 
 # load default options and update them with user information
 default_config = configparser.ConfigParser()
-default_config.read(os.path.join(CURRENT_PATH, 'config', 'default.cfg'))
+default_config.read(os.path.join(CURRENT_PATH, "config", "default.cfg"))
 user_config = configparser.RawConfigParser()
-user_config.read(os.path.join(CURRENT_PATH, 'config', 'configuration.cfg'))
+user_config.read(os.path.join(CURRENT_PATH, "config", "configuration.cfg"))
 
 # read user's configuration file
 options = load_options(default_config, user_config)
-options['tmp_folder'] = CURRENT_PATH + '/tmp'
+options["tmp_folder"] = CURRENT_PATH + "/tmp"
 
-if options['debug']:
+if options["debug"]:
     print_options(options)
 
 # tensorflow backend
-device = str(options['gpu_number'])
+device = str(options["gpu_number"])
 print("DEBUG: ", device)
-os.environ['KERAS_BACKEND'] = 'tensorflow'
+os.environ["KERAS_BACKEND"] = "tensorflow"
 os.environ["CUDA_VISIBLE_DEVICES"] = device
 
 # set paths taking into account the host OS
 host_os = platform.system()
-if host_os == 'Linux':
-    options['niftyreg_path'] = CURRENT_PATH + '/libs/linux/niftyreg'
-    options['robex_path'] = CURRENT_PATH + '/libs/linux/ROBEX/runROBEX.sh'
-    options['test_slices'] = 256
-elif host_os == 'Windows':
-    options['niftyreg_path'] = os.path.normpath(
-        os.path.join(CURRENT_PATH, 'libs', 'win', 'niftyreg'))
-    options['robex_path'] = os.path.normpath(
-        os.path.join(CURRENT_PATH, 'libs', 'win', 'ROBEX', 'runROBEX.bat'))
-    options['test_slices'] = 256
+if host_os == "Linux":
+    options["niftyreg_path"] = CURRENT_PATH + "/libs/linux/niftyreg"
+    options["robex_path"] = CURRENT_PATH + "/libs/linux/ROBEX/runROBEX.sh"
+    options["test_slices"] = 256
+elif host_os == "Windows":
+    options["niftyreg_path"] = os.path.normpath(
+        os.path.join(CURRENT_PATH, "libs", "win", "niftyreg")
+    )
+    options["robex_path"] = os.path.normpath(
+        os.path.join(CURRENT_PATH, "libs", "win", "ROBEX", "runROBEX.bat")
+    )
+    options["test_slices"] = 256
 else:
     print("The OS system", host_os, "is not currently supported.")
     exit()
 
-from CNN.base import train_cascaded_model, test_cascaded_model
-from CNN.build_model import cascade_model
-
 if container:
-    options['train_folder'] = os.path.normpath(
-        '/data' + options['train_folder'])
+    options["train_folder"] = os.path.normpath("/data" + options["train_folder"])
 else:
-    options['train_folder'] = os.path.normpath(options['train_folder'])
+    options["train_folder"] = os.path.normpath(options["train_folder"])
 
-scan_list = os.listdir(options['train_folder'])
+scan_list = os.listdir(options["train_folder"])
 scan_list.sort()
 
 # --------------------------------------------------
@@ -106,13 +105,12 @@ for scan in scan_list:
     total_time = time.time()
     preprocess_time = time.time()
 
-    options['tmp_scan'] = scan
-    current_folder = os.path.join(options['train_folder'], scan)
-    options['tmp_folder'] = os.path.normpath(
-        os.path.join(current_folder,  'tmp'))
+    options["tmp_scan"] = scan
+    current_folder = os.path.join(options["train_folder"], scan)
+    options["tmp_folder"] = os.path.normpath(os.path.join(current_folder, "tmp"))
 
     # set task to train
-    options['task'] = 'training'
+    options["task"] = "training"
 
     # preprocess scan
     preprocess_scan(current_folder, options)
@@ -129,13 +127,19 @@ for scan in scan_list:
 
     # select training scans
 
-    train_x_data = {f: {m: os.path.join(options['train_folder'], f, 'tmp', n)
-                        for m, n in zip(options['modalities'],
-                                        options['x_names'])}
-                    for f in scan_list if f != scan}
-    train_y_data = {f: os.path.join(options['train_folder'], f, 'tmp',
-                                    'lesion.nii.gz')
-                    for f in scan_list if f != scan}
+    train_x_data = {
+        f: {
+            m: os.path.join(options["train_folder"], f, "tmp", n)
+            for m, n in zip(options["modalities"], options["x_names"])
+        }
+        for f in scan_list
+        if f != scan
+    }
+    train_y_data = {
+        f: os.path.join(options["train_folder"], f, "tmp", "lesion.nii.gz")
+        for f in scan_list
+        if f != scan
+    }
 
     # organize the experiment: save models and traiining images inside a
     # predifined folder. Network parameters and weights are stored inside
@@ -143,16 +147,12 @@ for scan in scan_list:
     # training images are stored inside test_folder/experiment/.train
     # final segmentation images are stored in test_folder/experiment
 
-    if not os.path.exists(os.path.join(options['train_folder'],
-                                       scan,
-                                       'nets')):
-        os.mkdir(os.path.join(options['train_folder'], scan, 'nets'))
+    if not os.path.exists(os.path.join(options["train_folder"], scan, "nets")):
+        os.mkdir(os.path.join(options["train_folder"], scan, "nets"))
 
-    options['weight_paths'] = os.path.join(options['train_folder'],
-                                           scan,
-                                           'nets')
-    options['load_weights'] = False
-    options['test_scan'] = scan
+    options["weight_paths"] = os.path.join(options["train_folder"], scan, "nets")
+    options["load_weights"] = False
+    options["test_scan"] = scan
 
     # train the model for the current scan
     print("> CNN: training net with %d subjects" % (len(train_x_data.keys())))
@@ -161,21 +161,20 @@ for scan in scan_list:
     # initialize the CNN and train the classifier
     # --------------------------------------------------
     model = cascade_model(options)
-    model = train_cascaded_model(model, train_x_data, train_y_data,  options)
+    model = train_cascaded_model(model, train_x_data, train_y_data, options)
 
     print("> INFO: training time:", round(time.time() - seg_time), "sec")
-    print("> INFO: total pipeline time: ", \
-        round(time.time() - total_time), "sec")
+    print("> INFO: total pipeline time: ", round(time.time() - total_time), "sec")
 
     # --------------------------------------------------
     # test the current scan
     # --------------------------------------------------
-    test_x_data = {scan: {m: os.path.join(options['train_folder'],
-                                          scan,
-                                          'tmp',
-                                          n)
-                          for m, n in zip(options['modalities'],
-                                          options['x_names'])}}
+    test_x_data = {
+        scan: {
+            m: os.path.join(options["train_folder"], scan, "tmp", n)
+            for m, n in zip(options["modalities"], options["x_names"])
+        }
+    }
 
     out_seg = test_cascaded_model(model, test_x_data, options)
 

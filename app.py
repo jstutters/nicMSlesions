@@ -18,7 +18,6 @@ import os
 import signal
 import queue as Queue
 import threading
-from __init__ import __version__
 from tkinter import Frame, LabelFrame, Label, END, Tk
 from tkinter import Entry, Button, Checkbutton, OptionMenu, Toplevel
 from tkinter import BooleanVar, StringVar, IntVar, DoubleVar
@@ -27,6 +26,9 @@ from tkinter.ttk import Notebook
 from PIL import Image, ImageTk
 import webbrowser
 from cnn_scripts import train_network, infer_segmentation, get_config
+
+
+__version__ = "0.2"
 
 
 class wm_seg:
@@ -38,6 +40,7 @@ class wm_seg:
     - training
     - testing
     """
+
     def __init__(self, master, container):
 
         self.master = master
@@ -56,8 +59,7 @@ class wm_seg:
         self.version = __version__
         if self.container is False:
             # version_number
-            self.commit_version = subprocess.check_output(
-                ['git', 'rev-parse', 'HEAD'])
+            self.commit_version = subprocess.check_output(["git", "rev-parse", "HEAD"])
 
         # queue and thread parameters. All processes are embedded
         # inside threads to avoid freezing the application
@@ -87,13 +89,13 @@ class wm_seg:
         self.param_debug = BooleanVar()
 
         # train parameters
-        self.param_net_folder = os.path.join(self.current_folder, 'nets')
+        self.param_net_folder = os.path.join(self.current_folder, "nets")
         self.param_use_pretrained_model = BooleanVar()
         self.param_pretrained_model = StringVar()
         self.param_inference_model = StringVar()
         self.param_num_layers = IntVar()
         self.param_net_name = StringVar()
-        self.param_net_name.set('None')
+        self.param_net_name.set("None")
         self.param_balanced_dataset = BooleanVar()
         self.param_fract_negatives = DoubleVar()
 
@@ -121,7 +123,7 @@ class wm_seg:
         self.note = Notebook(self.master)
         self.note.pack()
 
-        os.system('cls' if platform.system() == 'Windows' else 'clear')
+        os.system("cls" if platform.system() == "Windows" else "clear")
         print("##################################################")
         print("# ------------                                   #")
         print("# nicMSlesions                                   #")
@@ -146,198 +148,169 @@ class wm_seg:
         # label frames
         cl_s = 5
         self.tr_frame = LabelFrame(self.train_frame, text="Training images:")
-        self.tr_frame.grid(row=0, columnspan=cl_s, sticky='WE',
-                           padx=5, pady=5, ipadx=5, ipady=5)
+        self.tr_frame.grid(
+            row=0, columnspan=cl_s, sticky="WE", padx=5, pady=5, ipadx=5, ipady=5
+        )
         self.model_frame = LabelFrame(self.train_frame, text="CNN model:")
-        self.model_frame.grid(row=5, columnspan=cl_s, sticky='WE',
-                              padx=5, pady=5, ipadx=5, ipady=5)
+        self.model_frame.grid(
+            row=5, columnspan=cl_s, sticky="WE", padx=5, pady=5, ipadx=5, ipady=5
+        )
 
         # training options
         self.inFolderLbl = Label(self.tr_frame, text="Training folder:")
-        self.inFolderLbl.grid(row=0, column=0, sticky='E', padx=5, pady=2)
+        self.inFolderLbl.grid(row=0, column=0, sticky="E", padx=5, pady=2)
         self.inFolderTxt = Entry(self.tr_frame)
-        self.inFolderTxt.grid(row=0,
-                              column=1,
-                              columnspan=5,
-                              sticky="W",
-                              pady=3)
-        self.inFileBtn = Button(self.tr_frame, text="Browse ...",
-                                command=self.load_training_path)
-        self.inFileBtn.grid(row=0,
-                            column=5,
-                            columnspan=1,
-                            sticky='W',
-                            padx=5,
-                            pady=1)
+        self.inFolderTxt.grid(row=0, column=1, columnspan=5, sticky="W", pady=3)
+        self.inFileBtn = Button(
+            self.tr_frame, text="Browse ...", command=self.load_training_path
+        )
+        self.inFileBtn.grid(row=0, column=5, columnspan=1, sticky="W", padx=5, pady=1)
 
-        self.optionsBtn = Button(self.tr_frame,
-                                 text="Other options",
-                                 command=self.parameter_window)
-        self.optionsBtn.grid(row=0,
-                             column=10,
-                             columnspan=1,
-                             sticky="W",
-                             padx=(100, 1),
-                             pady=1)
-
+        self.optionsBtn = Button(
+            self.tr_frame, text="Other options", command=self.parameter_window
+        )
+        self.optionsBtn.grid(
+            row=0, column=10, columnspan=1, sticky="W", padx=(100, 1), pady=1
+        )
 
         # setting input modalities: FLAIR + T1 are mandatory
         # Mod 3 / 4 are optional
         self.flairTagLbl = Label(self.tr_frame, text="FLAIR tag:")
-        self.flairTagLbl.grid(row=1, column=0, sticky='E', padx=5, pady=2)
-        self.flairTxt = Entry(self.tr_frame,
-                              textvariable=self.param_FLAIR_tag)
+        self.flairTagLbl.grid(row=1, column=0, sticky="E", padx=5, pady=2)
+        self.flairTxt = Entry(self.tr_frame, textvariable=self.param_FLAIR_tag)
         self.flairTxt.grid(row=1, column=1, columnspan=1, sticky="W", pady=1)
 
         self.t1TagLbl = Label(self.tr_frame, text="T1 tag:")
-        self.t1TagLbl.grid(row=2, column=0, sticky='E', padx=5, pady=2)
+        self.t1TagLbl.grid(row=2, column=0, sticky="E", padx=5, pady=2)
         self.t1Txt = Entry(self.tr_frame, textvariable=self.param_T1_tag)
         self.t1Txt.grid(row=2, column=1, columnspan=1, sticky="W", pady=1)
 
         self.mod3TagLbl = Label(self.tr_frame, text="mod 3 tag:")
-        self.mod3TagLbl.grid(row=3, column=0, sticky='E', padx=5, pady=2)
-        self.mod3Txt = Entry(self.tr_frame,
-                              textvariable=self.param_MOD3_tag)
+        self.mod3TagLbl.grid(row=3, column=0, sticky="E", padx=5, pady=2)
+        self.mod3Txt = Entry(self.tr_frame, textvariable=self.param_MOD3_tag)
         self.mod3Txt.grid(row=3, column=1, columnspan=1, sticky="W", pady=1)
 
         self.mod4TagLbl = Label(self.tr_frame, text="mod 4 tag:")
-        self.mod4TagLbl.grid(row=4, column=0, sticky='E', padx=5, pady=2)
-        self.mod4Txt = Entry(self.tr_frame,
-                              textvariable=self.param_MOD4_tag)
+        self.mod4TagLbl.grid(row=4, column=0, sticky="E", padx=5, pady=2)
+        self.mod4Txt = Entry(self.tr_frame, textvariable=self.param_MOD4_tag)
         self.mod4Txt.grid(row=4, column=1, columnspan=1, sticky="W", pady=1)
 
         self.maskTagLbl = Label(self.tr_frame, text="MASK tag:")
-        self.maskTagLbl.grid(row=5, column=0,
-                             sticky='E', padx=5, pady=2)
+        self.maskTagLbl.grid(row=5, column=0, sticky="E", padx=5, pady=2)
         self.maskTxt = Entry(self.tr_frame, textvariable=self.param_mask_tag)
         self.maskTxt.grid(row=5, column=1, columnspan=1, sticky="W", pady=1)
 
         # model options
         self.modelTagLbl = Label(self.model_frame, text="Model name:")
-        self.modelTagLbl.grid(row=6, column=0,
-                              sticky='E', padx=5, pady=2)
-        self.modelTxt = Entry(self.model_frame,
-                              textvariable=self.param_net_name)
+        self.modelTagLbl.grid(row=6, column=0, sticky="E", padx=5, pady=2)
+        self.modelTxt = Entry(self.model_frame, textvariable=self.param_net_name)
         self.modelTxt.grid(row=6, column=1, columnspan=1, sticky="W", pady=1)
 
-        self.checkPretrain = Checkbutton(self. model_frame,
-                                         text="use pretrained",
-                                         var=self.param_use_pretrained_model)
+        self.checkPretrain = Checkbutton(
+            self.model_frame, text="use pretrained", var=self.param_use_pretrained_model
+        )
         self.checkPretrain.grid(row=6, column=3, padx=5, pady=5)
 
         self.update_pretrained_nets()
 
-        self.pretrainTxt = OptionMenu(self.model_frame,
-                                      self.param_pretrained_model,
-                                      *self.list_train_pretrained_nets)
-        self.pretrainTxt.grid(row=6, column=5, sticky='E', padx=5, pady=5)
+        self.pretrainTxt = OptionMenu(
+            self.model_frame,
+            self.param_pretrained_model,
+            *self.list_train_pretrained_nets
+        )
+        self.pretrainTxt.grid(row=6, column=5, sticky="E", padx=5, pady=5)
 
         # START button links
-        self.trainingBtn = Button(self.train_frame,
-                                  state='disabled',
-                                  text="Start training",
-                                  command=self.train_net)
-        self.trainingBtn.grid(row=7, column=0, sticky='W', padx=1, pady=1)
+        self.trainingBtn = Button(
+            self.train_frame,
+            state="disabled",
+            text="Start training",
+            command=self.train_net,
+        )
+        self.trainingBtn.grid(row=7, column=0, sticky="W", padx=1, pady=1)
 
         # --------------------------------------------------
         # inference tab
         # --------------------------------------------------
         self.tt_frame = LabelFrame(self.test_frame, text="Inference images:")
-        self.tt_frame.grid(row=0, columnspan=cl_s, sticky='WE',
-                           padx=5, pady=5, ipadx=5, ipady=5)
+        self.tt_frame.grid(
+            row=0, columnspan=cl_s, sticky="WE", padx=5, pady=5, ipadx=5, ipady=5
+        )
         self.test_model_frame = LabelFrame(self.test_frame, text="CNN model:")
-        self.test_model_frame.grid(row=5, columnspan=cl_s, sticky='WE',
-                                   padx=5, pady=5, ipadx=5, ipady=5)
+        self.test_model_frame.grid(
+            row=5, columnspan=cl_s, sticky="WE", padx=5, pady=5, ipadx=5, ipady=5
+        )
 
         # testing options
         self.test_inFolderLbl = Label(self.tt_frame, text="Testing folder:")
-        self.test_inFolderLbl.grid(row=0, column=0, sticky='E', padx=5, pady=2)
+        self.test_inFolderLbl.grid(row=0, column=0, sticky="E", padx=5, pady=2)
         self.test_inFolderTxt = Entry(self.tt_frame)
-        self.test_inFolderTxt.grid(row=0,
-                                   column=1,
-                                   columnspan=5,
-                                   sticky="W",
-                                   pady=3)
-        self.test_inFileBtn = Button(self.tt_frame, text="Browse ...",
-                                     command=self.load_testing_path)
-        self.test_inFileBtn.grid(row=0,
-                                 column=5,
-                                 columnspan=1,
-                                 sticky='W',
-                                 padx=5,
-                                 pady=1)
+        self.test_inFolderTxt.grid(row=0, column=1, columnspan=5, sticky="W", pady=3)
+        self.test_inFileBtn = Button(
+            self.tt_frame, text="Browse ...", command=self.load_testing_path
+        )
+        self.test_inFileBtn.grid(
+            row=0, column=5, columnspan=1, sticky="W", padx=5, pady=1
+        )
 
-        self.test_optionsBtn = Button(self.tt_frame,
-                                      text="Other options",
-                                      command=self.parameter_window)
-        self.test_optionsBtn.grid(row=0,
-                                  column=10,
-                                  columnspan=1,
-                                  sticky="W",
-                                  padx=(100, 1),
-                                  pady=1)
+        self.test_optionsBtn = Button(
+            self.tt_frame, text="Other options", command=self.parameter_window
+        )
+        self.test_optionsBtn.grid(
+            row=0, column=10, columnspan=1, sticky="W", padx=(100, 1), pady=1
+        )
 
         self.test_flairTagLbl = Label(self.tt_frame, text="FLAIR tag:")
-        self.test_flairTagLbl.grid(row=1, column=0, sticky='E', padx=5, pady=2)
-        self.test_flairTxt = Entry(self.tt_frame,
-                              textvariable=self.param_FLAIR_tag)
+        self.test_flairTagLbl.grid(row=1, column=0, sticky="E", padx=5, pady=2)
+        self.test_flairTxt = Entry(self.tt_frame, textvariable=self.param_FLAIR_tag)
         self.test_flairTxt.grid(row=1, column=1, columnspan=1, sticky="W", pady=1)
 
         self.test_t1TagLbl = Label(self.tt_frame, text="T1 tag:")
-        self.test_t1TagLbl.grid(row=2, column=0, sticky='E', padx=5, pady=2)
+        self.test_t1TagLbl.grid(row=2, column=0, sticky="E", padx=5, pady=2)
         self.test_t1Txt = Entry(self.tt_frame, textvariable=self.param_T1_tag)
         self.test_t1Txt.grid(row=2, column=1, columnspan=1, sticky="W", pady=1)
 
         self.test_mod3TagLbl = Label(self.tt_frame, text="mod 3 tag:")
-        self.test_mod3TagLbl.grid(row=3, column=0, sticky='E', padx=5, pady=2)
-        self.test_mod3Txt = Entry(self.tt_frame,
-                              textvariable=self.param_MOD3_tag)
+        self.test_mod3TagLbl.grid(row=3, column=0, sticky="E", padx=5, pady=2)
+        self.test_mod3Txt = Entry(self.tt_frame, textvariable=self.param_MOD3_tag)
         self.test_mod3Txt.grid(row=3, column=1, columnspan=1, sticky="W", pady=1)
 
         self.test_mod4TagLbl = Label(self.tt_frame, text="mod 4 tag:")
-        self.test_mod4TagLbl.grid(row=4, column=0, sticky='E', padx=5, pady=2)
-        self.test_mod4Txt = Entry(self.tt_frame,
-                              textvariable=self.param_MOD4_tag)
+        self.test_mod4TagLbl.grid(row=4, column=0, sticky="E", padx=5, pady=2)
+        self.test_mod4Txt = Entry(self.tt_frame, textvariable=self.param_MOD4_tag)
         self.test_mod4Txt.grid(row=4, column=1, columnspan=1, sticky="W", pady=1)
 
-        self.test_pretrainTxt = OptionMenu(self.test_model_frame,
-                                           self.param_inference_model,
-                                           *self.list_test_nets)
+        self.test_pretrainTxt = OptionMenu(
+            self.test_model_frame, self.param_inference_model, *self.list_test_nets
+        )
 
-        self.param_inference_model.set('None')
-        self.test_pretrainTxt.grid(row=5, column=0, sticky='E', padx=5, pady=5)
+        self.param_inference_model.set("None")
+        self.test_pretrainTxt.grid(row=5, column=0, sticky="E", padx=5, pady=5)
 
         # START button links cto docker task
-        self.inferenceBtn = Button(self.test_frame,
-                                   state='disabled',
-                                   text="Start inference",
-                                   command=self.infer_segmentation)
-        self.inferenceBtn.grid(row=7, column=0, sticky='W', padx=1, pady=1)
+        self.inferenceBtn = Button(
+            self.test_frame,
+            state="disabled",
+            text="Start inference",
+            command=self.infer_segmentation,
+        )
+        self.inferenceBtn.grid(row=7, column=0, sticky="W", padx=1, pady=1)
 
         # train / test ABOUT button
-        self.train_aboutBtn = Button(self.train_frame,
-                                     text="about",
-                                     command=self.about_window)
-        self.train_aboutBtn.grid(row=7,
-                                 column=4,
-                                 sticky='E',
-                                 padx=(1, 1),
-                                 pady=1)
+        self.train_aboutBtn = Button(
+            self.train_frame, text="about", command=self.about_window
+        )
+        self.train_aboutBtn.grid(row=7, column=4, sticky="E", padx=(1, 1), pady=1)
 
-        self.test_aboutBtn = Button(self.test_frame,
-                                    text="about",
-                                    command=self.about_window)
-        self.test_aboutBtn.grid(row=7,
-                                column=4,
-                                sticky='E',
-                                padx=(1, 1),
-                                pady=1)
+        self.test_aboutBtn = Button(
+            self.test_frame, text="about", command=self.about_window
+        )
+        self.test_aboutBtn.grid(row=7, column=4, sticky="E", padx=(1, 1), pady=1)
 
         # Processing state
         self.process_indicator = StringVar()
-        self.process_indicator.set(' ')
-        self.label_indicator = Label(master,
-                                     textvariable=self.process_indicator)
+        self.process_indicator.set(" ")
+        self.label_indicator = Label(master, textvariable=self.process_indicator)
         self.label_indicator.pack(side="left")
 
         # Closing processing events is implemented via
@@ -356,17 +329,15 @@ class wm_seg:
         # data parameters
         t_data = LabelFrame(t, text="data options:")
         t_data.grid(row=0, sticky="WE")
-        checkPretrain = Checkbutton(t_data,
-                                    text="Register modalities",
-                                    var=self.param_register_modalities)
-        checkPretrain.grid(row=0, sticky='W')
-        checkSkull = Checkbutton(t_data,
-                                 text="Skull-strip modalities",
-                                 var=self.param_skull_stripping)
+        checkPretrain = Checkbutton(
+            t_data, text="Register modalities", var=self.param_register_modalities
+        )
+        checkPretrain.grid(row=0, sticky="W")
+        checkSkull = Checkbutton(
+            t_data, text="Skull-strip modalities", var=self.param_skull_stripping
+        )
         checkSkull.grid(row=1, sticky="W")
-        checkDenoise = Checkbutton(t_data,
-                                   text="Denoise masks",
-                                   var=self.param_denoise)
+        checkDenoise = Checkbutton(t_data, text="Denoise masks", var=self.param_denoise)
         checkDenoise.grid(row=2, sticky="W")
 
         denoise_iter_label = Label(t_data, text=" Denoise iter:               ")
@@ -374,13 +345,9 @@ class wm_seg:
         denoise_iter_entry = Entry(t_data, textvariable=self.param_denoise_iter)
         denoise_iter_entry.grid(row=3, column=1, sticky="E")
 
-        check_tmp = Checkbutton(t_data,
-                                text="Save tmp files",
-                                var=self.param_save_tmp)
+        check_tmp = Checkbutton(t_data, text="Save tmp files", var=self.param_save_tmp)
         check_tmp.grid(row=4, sticky="W")
-        checkdebug = Checkbutton(t_data,
-                                 text="Debug mode",
-                                 var=self.param_debug)
+        checkdebug = Checkbutton(t_data, text="Debug mode", var=self.param_debug)
         checkdebug.grid(row=5, sticky="W")
 
         # model parameters
@@ -407,34 +374,33 @@ class wm_seg:
         mode_entry = Entry(t_model, textvariable=self.param_net_verbose)
         mode_entry.grid(row=9, column=1, sticky="E")
 
-        #gpu_mode = Checkbutton(t_model,
+        # gpu_mode = Checkbutton(t_model,
         #                         text="GPU:",
         #                         var=self.param_mode)
-        #gpu_mode.grid(row=10, sticky="W")
+        # gpu_mode.grid(row=10, sticky="W")
 
         gpu_number = Label(t_model, text="GPU number:")
         gpu_number.grid(row=10, sticky="W")
         gpu_entry = Entry(t_model, textvariable=self.param_gpu_number)
         gpu_entry.grid(row=10, column=1, sticky="W")
 
-
         # training parameters
         tr_model = LabelFrame(t, text="Training:")
         tr_model.grid(row=12, sticky="EW")
 
-        balanced_entry = Checkbutton(tr_model,
-                                     text="Balanced training",
-                                     command=self.check_train,
-                                     var=self.param_balanced_dataset)
+        balanced_entry = Checkbutton(
+            tr_model,
+            text="Balanced training",
+            command=self.check_train,
+            var=self.param_balanced_dataset,
+        )
         balanced_entry.grid(row=13, sticky="W")
 
-
-        fraction_label = Label(tr_model,
-                               text="Fraction negative/positives: ")
+        fraction_label = Label(tr_model, text="Fraction negative/positives: ")
         fraction_label.grid(row=14, sticky="W")
-        self.fraction_entry = Entry(tr_model,
-                                    state='disabled',
-                                    textvariable=self.param_fract_negatives)
+        self.fraction_entry = Entry(
+            tr_model, state="disabled", textvariable=self.param_fract_negatives
+        )
         self.fraction_entry.grid(row=14, column=1, sticky="E")
 
         # postprocessing parameters
@@ -455,15 +421,14 @@ class wm_seg:
         vol_min_entry = Entry(t_post, textvariable=self.param_min_error)
         vol_min_entry.grid(row=18, column=1, sticky="E")
 
-
     def check_train(self):
         """
         Show fraction on negative / positive only when balanced training is unset
         """
-        if self.fraction_entry['state'] == 'disabled':
-            self.fraction_entry['state'] = 'normal'
+        if self.fraction_entry["state"] == "disabled":
+            self.fraction_entry["state"] = "normal"
         else:
-            self.fraction_entry['state'] = 'disabled'
+            self.fraction_entry["state"] = "disabled"
 
     def load_default_configuration(self):
         """
@@ -473,50 +438,53 @@ class wm_seg:
         """
 
         default_config = configparser.ConfigParser()
-        default_config.read(os.path.join(self.path, 'config', 'default.cfg'))
+        default_config.read(os.path.join(self.path, "config", "default.cfg"))
 
         # dastaset parameters
-        self.param_training_folder.set(default_config.get('database',
-                                                          'train_folder'))
-        self.param_test_folder.set(default_config.get('database',
-                                                      'inference_folder'))
-        self.param_FLAIR_tag.set(default_config.get('database','flair_tags'))
-        self.param_T1_tag.set(default_config.get('database','t1_tags'))
-        self.param_MOD3_tag.set(default_config.get('database','mod3_tags'))
-        self.param_MOD4_tag.set(default_config.get('database','mod4_tags'))
-        self.param_mask_tag.set(default_config.get('database','roi_tags'))
-        self.param_register_modalities.set(default_config.get('database', 'register_modalities'))
-        self.param_denoise.set(default_config.get('database', 'denoise'))
-        self.param_denoise_iter.set(default_config.getint('database', 'denoise_iter'))
-        self.param_skull_stripping.set(default_config.get('database', 'skull_stripping'))
-        self.param_save_tmp.set(default_config.get('database', 'save_tmp'))
-        self.param_debug.set(default_config.get('database', 'debug'))
+        self.param_training_folder.set(default_config.get("database", "train_folder"))
+        self.param_test_folder.set(default_config.get("database", "inference_folder"))
+        self.param_FLAIR_tag.set(default_config.get("database", "flair_tags"))
+        self.param_T1_tag.set(default_config.get("database", "t1_tags"))
+        self.param_MOD3_tag.set(default_config.get("database", "mod3_tags"))
+        self.param_MOD4_tag.set(default_config.get("database", "mod4_tags"))
+        self.param_mask_tag.set(default_config.get("database", "roi_tags"))
+        self.param_register_modalities.set(
+            default_config.get("database", "register_modalities")
+        )
+        self.param_denoise.set(default_config.get("database", "denoise"))
+        self.param_denoise_iter.set(default_config.getint("database", "denoise_iter"))
+        self.param_skull_stripping.set(
+            default_config.get("database", "skull_stripping")
+        )
+        self.param_save_tmp.set(default_config.get("database", "save_tmp"))
+        self.param_debug.set(default_config.get("database", "debug"))
 
         # train parameters
-        self.param_use_pretrained_model.set(default_config.get('train', 'full_train'))
-        self.param_pretrained_model.set(default_config.get('train', 'pretrained_model'))
+        self.param_use_pretrained_model.set(default_config.get("train", "full_train"))
+        self.param_pretrained_model.set(default_config.get("train", "pretrained_model"))
         self.param_inference_model.set("      ")
-        self.param_balanced_dataset.set(default_config.get('train', 'balanced_training'))
-        self.param_fract_negatives.set(default_config.getfloat('train', 'fraction_negatives'))
+        self.param_balanced_dataset.set(
+            default_config.get("train", "balanced_training")
+        )
+        self.param_fract_negatives.set(
+            default_config.getfloat("train", "fraction_negatives")
+        )
 
         # model parameters
-        self.param_net_folder = os.path.join(self.current_folder, 'nets')
-        self.param_net_name.set(default_config.get('model', 'name'))
-        self.param_train_split.set(default_config.getfloat('model', 'train_split'))
-        self.param_max_epochs.set(default_config.getint('model', 'max_epochs'))
-        self.param_patience.set(default_config.getint('model', 'patience'))
-        self.param_batch_size.set(default_config.getint('model', 'batch_size'))
-        self.param_net_verbose.set(default_config.get('model', 'net_verbose'))
-        self.param_gpu_number.set(default_config.getint('model', 'gpu_number'))
+        self.param_net_folder = os.path.join(self.current_folder, "nets")
+        self.param_net_name.set(default_config.get("model", "name"))
+        self.param_train_split.set(default_config.getfloat("model", "train_split"))
+        self.param_max_epochs.set(default_config.getint("model", "max_epochs"))
+        self.param_patience.set(default_config.getint("model", "patience"))
+        self.param_batch_size.set(default_config.getint("model", "batch_size"))
+        self.param_net_verbose.set(default_config.get("model", "net_verbose"))
+        self.param_gpu_number.set(default_config.getint("model", "gpu_number"))
         # self.param_mode.set(default_config.get('model', 'gpu_mode'))
 
         # post-processing
-        self.param_l_min.set(default_config.getint('postprocessing',
-                                                   'l_min'))
-        self.param_t_bin.set(default_config.getfloat('postprocessing',
-                                                     't_bin'))
-        self.param_min_error.set(default_config.getfloat('postprocessing',
-                                                     'min_error'))
+        self.param_l_min.set(default_config.getint("postprocessing", "l_min"))
+        self.param_t_bin.set(default_config.getfloat("postprocessing", "t_bin"))
+        self.param_min_error.set(default_config.getfloat("postprocessing", "min_error"))
 
     def write_user_configuration(self):
         """
@@ -525,59 +493,54 @@ class wm_seg:
         user_config = configparser.RawConfigParser()
 
         # dataset parameters
-        user_config.add_section('database')
-        user_config.set('database', 'train_folder', self.param_training_folder.get())
-        user_config.set('database', 'inference_folder', self.param_test_folder.get())
-        user_config.set('database', 'flair_tags', self.param_FLAIR_tag.get())
-        user_config.set('database', 't1_tags', self.param_T1_tag.get())
-        user_config.set('database', 'mod3_tags', self.param_MOD3_tag.get())
-        user_config.set('database', 'mod4_tags', self.param_MOD4_tag.get())
-        user_config.set('database', 'roi_tags', self.param_mask_tag.get())
+        user_config.add_section("database")
+        user_config.set("database", "train_folder", self.param_training_folder.get())
+        user_config.set("database", "inference_folder", self.param_test_folder.get())
+        user_config.set("database", "flair_tags", self.param_FLAIR_tag.get())
+        user_config.set("database", "t1_tags", self.param_T1_tag.get())
+        user_config.set("database", "mod3_tags", self.param_MOD3_tag.get())
+        user_config.set("database", "mod4_tags", self.param_MOD4_tag.get())
+        user_config.set("database", "roi_tags", self.param_mask_tag.get())
 
-        user_config.set('database', 'register_modalities', self.param_register_modalities.get())
-        user_config.set('database', 'denoise', self.param_denoise.get())
-        user_config.set('database', 'denoise_iter', self.param_denoise_iter.get())
-        user_config.set('database', 'skull_stripping', self.param_skull_stripping.get())
-        user_config.set('database', 'save_tmp', self.param_save_tmp.get())
-        user_config.set('database', 'debug', self.param_debug.get())
+        user_config.set(
+            "database", "register_modalities", self.param_register_modalities.get()
+        )
+        user_config.set("database", "denoise", self.param_denoise.get())
+        user_config.set("database", "denoise_iter", self.param_denoise_iter.get())
+        user_config.set("database", "skull_stripping", self.param_skull_stripping.get())
+        user_config.set("database", "save_tmp", self.param_save_tmp.get())
+        user_config.set("database", "debug", self.param_debug.get())
 
         # train parameters
-        user_config.add_section('train')
-        user_config.set('train',
-                        'full_train',
-                        not(self.param_use_pretrained_model.get()))
-        user_config.set('train',
-                        'pretrained_model',
-                        self.param_pretrained_model.get())
-        user_config.set('train',
-                        'balanced_training',
-                        self.param_balanced_dataset.get())
-        user_config.set('train',
-                        'fraction_negatives',
-                        self.param_fract_negatives.get())
+        user_config.add_section("train")
+        user_config.set(
+            "train", "full_train", not (self.param_use_pretrained_model.get())
+        )
+        user_config.set("train", "pretrained_model", self.param_pretrained_model.get())
+        user_config.set("train", "balanced_training", self.param_balanced_dataset.get())
+        user_config.set("train", "fraction_negatives", self.param_fract_negatives.get())
         # model parameters
-        user_config.add_section('model')
-        user_config.set('model', 'name', self.param_net_name.get())
-        user_config.set('model', 'pretrained', self.param_pretrained)
-        user_config.set('model', 'train_split', self.param_train_split.get())
-        user_config.set('model', 'max_epochs', self.param_max_epochs.get())
-        user_config.set('model', 'patience', self.param_patience.get())
-        user_config.set('model', 'batch_size', self.param_batch_size.get())
-        user_config.set('model', 'net_verbose', self.param_net_verbose.get())
+        user_config.add_section("model")
+        user_config.set("model", "name", self.param_net_name.get())
+        user_config.set("model", "pretrained", self.param_pretrained)
+        user_config.set("model", "train_split", self.param_train_split.get())
+        user_config.set("model", "max_epochs", self.param_max_epochs.get())
+        user_config.set("model", "patience", self.param_patience.get())
+        user_config.set("model", "batch_size", self.param_batch_size.get())
+        user_config.set("model", "net_verbose", self.param_net_verbose.get())
         # user_config.set('model', 'gpu_mode', self.param_mode.get())
-        user_config.set('model', 'gpu_number', self.param_gpu_number.get())
+        user_config.set("model", "gpu_number", self.param_gpu_number.get())
 
         # postprocessing parameters
-        user_config.add_section('postprocessing')
-        user_config.set('postprocessing', 't_bin', self.param_t_bin.get())
-        user_config.set('postprocessing', 'l_min', self.param_l_min.get())
-        user_config.set('postprocessing',
-                        'min_error', self.param_min_error.get())
+        user_config.add_section("postprocessing")
+        user_config.set("postprocessing", "t_bin", self.param_t_bin.get())
+        user_config.set("postprocessing", "l_min", self.param_l_min.get())
+        user_config.set("postprocessing", "min_error", self.param_min_error.get())
 
         # Writing our configuration file to 'example.cfg'
-        with open(os.path.join(self.path,
-                               'config',
-                               'configuration.cfg'), 'w') as configfile:
+        with open(
+            os.path.join(self.path, "config", "configuration.cfg"), "w"
+        ) as configfile:
             user_config.write(configfile)
 
     def load_training_path(self):
@@ -586,15 +549,15 @@ class wm_seg:
         If the app is run inside a container,
         link the iniitaldir with /data
         """
-        initialdir = '/data' if self.container else os.getcwd()
+        initialdir = "/data" if self.container else os.getcwd()
         fname = askdirectory(initialdir=initialdir)
         if fname:
             try:
                 self.param_training_folder.set(fname)
                 self.inFolderTxt.delete(0, END)
                 self.inFolderTxt.insert(0, self.param_training_folder.get())
-                self.trainingBtn['state'] = 'normal'
-            except:
+                self.trainingBtn["state"] = "normal"
+            except Exception:
                 pass
 
     def load_testing_path(self):
@@ -603,15 +566,15 @@ class wm_seg:
         If the app is run inside a container,
         link the iniitaldir with /data
         """
-        initialdir = '/data' if self.container else os.getcwd()
+        initialdir = "/data" if self.container else os.getcwd()
         fname = askdirectory(initialdir=initialdir)
         if fname:
             try:
                 self.param_test_folder.set(fname)
                 self.test_inFolderTxt.delete(0, END)
                 self.test_inFolderTxt.insert(0, self.param_test_folder.get())
-                self.inferenceBtn['state'] = 'normal'
-            except:
+                self.inferenceBtn["state"] = "normal"
+            except Exception:
                 pass
 
     def update_pretrained_nets(self):
@@ -648,11 +611,11 @@ class wm_seg:
         - Run the process on a new thread
         """
 
-        if self.param_inference_model.get() == 'None':
+        if self.param_inference_model.get() == "None":
             print("ERROR: Please, select a network model before starting...\n")
             return
         if self.test_task is None:
-            self.inferenceBtn.config(state='disabled')
+            self.inferenceBtn.config(state="disabled")
             self.param_net_name.set(self.param_inference_model.get())
             self.param_use_pretrained_model.set(False)
             self.write_user_configuration()
@@ -664,8 +627,9 @@ class wm_seg:
 
             print("Method info:")
             print("------------")
-            self.test_task = ThreadedTask(self.write_to_test_console,
-                                          self.test_queue, mode='testing')
+            self.test_task = ThreadedTask(
+                self.write_to_test_console, self.test_queue, mode="testing"
+            )
             self.test_task.start()
             self.master.after(100, self.process_container_queue)
 
@@ -676,11 +640,11 @@ class wm_seg:
         - Run the process on a new thread
         """
 
-        if self.param_net_name.get() == 'None':
+        if self.param_net_name.get() == "None":
             print("ERROR: Please, define network name before starting...\n")
             return
 
-        self.trainingBtn['state'] = 'disable'
+        self.trainingBtn["state"] = "disable"
 
         if self.train_task is None:
             self.trainingBtn.update()
@@ -694,38 +658,35 @@ class wm_seg:
             print("Method info:")
             print("------------")
 
-            self.train_task = ThreadedTask(self.write_to_console,
-                                           self.test_queue,
-                                           mode='training')
+            self.train_task = ThreadedTask(
+                self.write_to_console, self.test_queue, mode="training"
+            )
             self.train_task.start()
             self.master.after(100, self.process_container_queue)
 
     def check_update(self):
-            """
+        """
             check update version and propose to download it if differnt
             So far, a rudimentary mode is used to check the last version.
             """
 
-            # I have to discard possible local changes :(
-            print("---------------------------------------")
-            print("Updating software")
-            print("current version:", self.commit_version)
+        # I have to discard possible local changes :(
+        print("---------------------------------------")
+        print("Updating software")
+        print("current version:", self.commit_version)
 
-            remote_commit = subprocess.check_output(['git', 'stash'])
-            remote_commit = subprocess.check_output(['git', 'fetch'])
-            remote_commit = subprocess.check_output(['git',
-                                                     'rev-parse',
-                                                     'origin/master'])
+        remote_commit = subprocess.check_output(["git", "stash"])
+        remote_commit = subprocess.check_output(["git", "fetch"])
+        remote_commit = subprocess.check_output(["git", "rev-parse", "origin/master"])
 
-            if remote_commit != self.commit_version:
-                proc = subprocess.check_output(['git', 'pull',
-                                                'origin', 'master'])
-                self.check_link.config(text="Updated")
-                self.commit_version = remote_commit
-                print("updated version:", self.commit_version)
-            else:
-                print("This software is already in the latest version")
-            print("---------------------------------------")
+        if remote_commit != self.commit_version:
+            _ = subprocess.check_output(["git", "pull", "origin", "master"])
+            self.check_link.config(text="Updated")
+            self.commit_version = remote_commit
+            print("updated version:", self.commit_version)
+        else:
+            print("This software is already in the latest version")
+        print("---------------------------------------")
 
     def about_window(self):
         """
@@ -745,51 +706,54 @@ class wm_seg:
         t.wm_title("About")
 
         # NIC logo + name
-        title = Label(t,
-                      text="nicMSlesions v" + self.version + "\n"
-                      "Multiple Sclerosis White Matter Lesion Segmentation")
+        title = Label(
+            t,
+            text="nicMSlesions v" + self.version + "\n"
+            "Multiple Sclerosis White Matter Lesion Segmentation",
+        )
         title.grid(row=2, column=1, padx=20, pady=10)
-        img = ImageTk.PhotoImage(Image.open('./logonic.png'))
+        img = ImageTk.PhotoImage(Image.open("./logonic.png"))
         imglabel = Label(t, image=img)
         imglabel.image = img
         imglabel.grid(row=1, column=1, padx=10, pady=10)
-        group_name = Label(t,
-                           text="Copyright Sergi Valverde (2019-) \n " + \
-                           "NeuroImage Computing Group")
+        group_name = Label(
+            t,
+            text="Copyright Sergi Valverde (2019-) \n " + "NeuroImage Computing Group",
+        )
         group_name.grid(row=3, column=1)
-        group_link = Label(t, text=r"http://atc.udg.edu/nic",
-                           fg="blue",
-                           cursor="hand2")
+        group_link = Label(t, text=r"http://atc.udg.edu/nic", fg="blue", cursor="hand2")
         group_link.grid(row=4, column=1)
         group_link.bind("<Button-1>", callback)
 
-        license_content = "Licensed under the BSD 2-Clause license. \n" + \
-                          "A copy of the license is present in the root directory."
+        license_content = (
+            "Licensed under the BSD 2-Clause license. \n"
+            + "A copy of the license is present in the root directory."
+        )
 
         license_label = Label(t, text=license_content)
         license_label.grid(row=5, column=1, padx=20, pady=20)
 
         if self.container is False:
-             # check version and updates
-             version_number = Label(t, text="commit: " + self.commit_version)
-             version_number.grid(row=6, column=1, padx=20, pady=(1, 1))
+            # check version and updates
+            version_number = Label(t, text="commit: " + self.commit_version)
+            version_number.grid(row=6, column=1, padx=20, pady=(1, 1))
 
-             self.check_link = Button(t,
-                                 text="Check for updates",
-                                 command=self.check_update)
-             self.check_link.grid(row=7, column=1)
+            self.check_link = Button(
+                t, text="Check for updates", command=self.check_update
+            )
+            self.check_link.grid(row=7, column=1)
 
     def process_container_queue(self):
         """
         Process the threading queue. When the threaded processes are
         finished, buttons are reset and a message is shown in the app.
         """
-        self.process_indicator.set('Running... please wait')
+        self.process_indicator.set("Running... please wait")
         try:
-            msg = self.test_queue.get(0)
-            self.process_indicator.set('Done. See log for more details.')
-            self.inferenceBtn['state'] = 'normal'
-            self.trainingBtn['state'] = 'normal'
+            _ = self.test_queue.get(0)
+            self.process_indicator.set("Done. See log for more details.")
+            self.inferenceBtn["state"] = "normal"
+            self.trainingBtn["state"] = "normal"
         except Queue.Empty:
             self.master.after(100, self.process_container_queue)
 
@@ -801,7 +765,7 @@ class wm_seg:
             self.train_task.stop_process()
         if self.test_task is not None:
             self.test_task.stop_process()
-        os.system('cls' if platform.system == "Windows" else 'clear')
+        os.system("cls" if platform.system == "Windows" else "clear")
         root.destroy()
 
 
@@ -812,6 +776,7 @@ class ThreadedTask(threading.Thread):
     - infer segmentation
     - stop process
     """
+
     def __init__(self, print_func, queue, mode):
         threading.Thread.__init__(self)
         self.queue = queue
@@ -824,7 +789,7 @@ class ThreadedTask(threading.Thread):
         Call either the training and testing scripts in cnn_scripts.py.
         """
         options = get_config()
-        if self.mode == 'training':
+        if self.mode == "training":
             train_network(options)
         else:
             infer_segmentation(options)
@@ -836,15 +801,15 @@ class ThreadedTask(threading.Thread):
         OS dependant
         """
         try:
-            if platform.system() == "Windows" :
-                subprocess.Popen("taskkill /F /T /PID %i" % os.getpid() , shell=True)
+            if platform.system() == "Windows":
+                subprocess.Popen("taskkill /F /T /PID %i" % os.getpid(), shell=True)
             else:
                 os.killpg(os.getpgid(self.process.pid), signal.SIGKILL)
-        except:
+        except Exception:
             os.kill(os.getpid(), signal.SIGTERM)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     """
     main script. Check if the method is run inside a docker and then
     call the main application
@@ -856,9 +821,7 @@ if __name__ == '__main__':
     """
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--docker',
-                        dest='docker',
-                        action='store_true')
+    parser.add_argument("--docker", dest="docker", action="store_true")
     parser.set_defaults(docker=False)
     args = parser.parse_args()
     root = Tk()
