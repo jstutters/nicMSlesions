@@ -429,7 +429,7 @@ def load_test_patches(
     """
 
     # get scan names and number of modalities used
-    scans = test_x_data.keys()
+    scans = list(test_x_data.keys())
     modalities = test_x_data[scans[0]].keys()
 
     # load all image modalities and normalize intensities
@@ -527,7 +527,7 @@ def test_scan(model, test_x_data, options, save_nifti=True, candidate_mask=None)
     """
 
     # get_scan name and create an empty nifti image to store segmentation
-    scans = test_x_data.keys()
+    scans = list(test_x_data.keys())
     flair_scans = [test_x_data[s]["FLAIR"] for s in scans]
     flair_image = load_nii(flair_scans[0])
     seg_image = np.zeros_like(flair_image.get_data().astype("float32"))
@@ -632,7 +632,7 @@ def select_voxels_from_previous_model(model, train_x_data, options):
     seg_masks = []
     for scan, s in zip(train_x_data.keys(), range(len(scans))):
         seg_mask = test_scan(
-            model, dict(train_x_data.items()[s: s + 1]), options, save_nifti=False
+            model, dict(list(train_x_data.items())[s: s + 1]), options, save_nifti=False
         )
         seg_masks.append(seg_mask > 0.5)
 
