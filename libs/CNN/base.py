@@ -412,8 +412,9 @@ def load_train_patches(x_data,
 def load_test_patches(test_x_data,
                       patch_size,
                       batch_size,
-                      voxel_candidates = None,
-                      datatype=np.float32):
+                      voxel_candidates=None,
+                      datatype=np.float32,
+                      debug=False):
     """
     Function generator to load test patches with size equal to patch_size,
     given a list of selected voxels. Patches are returned in batches to reduce
@@ -455,11 +456,18 @@ def load_test_patches(test_x_data,
         selected_voxels = get_mask_voxels(voxel_candidates)
 
     # yield data for testing with size equal to batch_size
-    for i in range(0, len(selected_voxels), batch_size):
+    n_voxels = len(selected_voxels)
+    for i in range(0, n_voxels, batch_size):
         c_centers = selected_voxels[i:i+batch_size]
         X = []
         for m, image_modality in zip(modalities, images):
             X.append(get_patches(image_modality[0], c_centers, patch_size))
+        if debug is True:
+            print "> DEBUG: testing current_batch: {0}-{1} of {2}".format(
+                i,
+                i + batch_size,
+                n_voxels
+            )
         yield np.stack(X, axis=1), c_centers
 
 
@@ -544,10 +552,8 @@ def test_scan(model,
     for batch, centers in load_test_patches(test_x_data,
                                             options['patch_size'],
                                             options['batch_size'],
-                                            candidate_mask):
-        if options['debug'] is True:
-            print "> DEBUG: testing current_batch:", batch.shape
-
+                                            voxel_candidates=candidate_mask,
+                                            debug=options['debug']):
         y_pred = model['net'].predict(np.squeeze(batch),
                                       options['batch_size'])
         [x, y, z] = np.stack(centers, axis=1)
