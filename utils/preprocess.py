@@ -109,7 +109,7 @@ def parse_input_masks(current_folder, options):
             print "    --> ", masks[index], "as", m, "image"
             masks.remove(masks[index])
     else:
-        ref_scan = nib.load(os.path.join(current_folder, 'tmp', 'T1.nii.gz'))
+        ref_scan = nib.load(os.path.join(options['tmp_folder'], 'T1.nii.gz'))
         input_image = np.zeros_like(ref_scan.get_data())
         output_sequence = nib.Nifti1Image(input_image,
                                           affine=ref_scan.affine)
