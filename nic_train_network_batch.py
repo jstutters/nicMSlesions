@@ -41,6 +41,12 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--docker',
                     dest='docker',
                     action='store_true')
+parser.add_argument('--configuration',
+                    default=os.path.join(CURRENT_PATH, 'config', 'configuration.cfg'),
+                    dest='configuration_path')
+parser.add_argument('--nets',
+                    default=os.path.join(CURRENT_PATH, 'nets'),
+                    dest='nets_path')
 parser.set_defaults(docker=False)
 args = parser.parse_args()
 container = args.docker
@@ -53,7 +59,7 @@ sys.path.append(os.path.join(CURRENT_PATH, 'libs'))
 default_config = ConfigParser.SafeConfigParser()
 default_config.read(os.path.join(CURRENT_PATH, 'config', 'default.cfg'))
 user_config = ConfigParser.RawConfigParser()
-user_config.read(os.path.join(CURRENT_PATH, 'config', 'configuration.cfg'))
+user_config.read(args.configuration_path)
 
 # read user's configuration file
 options = load_options(default_config, user_config)
@@ -140,7 +146,7 @@ train_y_data = {f: os.path.join(options['train_folder'], f, 'tmp',
                 for f in scan_list}
 
 
-options['weight_paths'] = os.path.join(CURRENT_PATH, 'nets')
+options['weight_paths'] = args.nets_path
 options['load_weights'] = False
 
 # train the model for the current scan
